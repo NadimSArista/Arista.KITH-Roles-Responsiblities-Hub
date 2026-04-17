@@ -47,7 +47,7 @@ export async function login() {
       return false;
     }
 
-    // ✅ FIX: store login state instantly
+    // ✅ Store session locally (fast + stable)
     localStorage.setItem("userLoggedIn", "true");
 
     return true;
@@ -59,18 +59,31 @@ export async function login() {
   }
 }
 
-// 🔓 LOGOUT
+// 🔓 LOGOUT (FIXED - NO CROSS TAB NAV ISSUE)
 export async function logout() {
-  await signOut(auth);
+  try {
+    await signOut(auth);
 
-  // ✅ FIX: clear local session
-  localStorage.removeItem("userLoggedIn");
+    // ✅ Clear session
+    localStorage.removeItem("userLoggedIn");
 
-  // ✅ redirect cleanly
-  window.location.href = "index.html";
+    // ✅ Redirect ONLY this tab safely
+    window.location.replace("index.html");
+
+  } catch (error) {
+    console.error(error);
+  }
 }
 
-// ✅ SIMPLE AUTH CHECK (NO FIREBASE DELAY)
+// ✅ SIMPLE AUTH CHECK
 export function isUserLoggedIn() {
   return localStorage.getItem("userLoggedIn") === "true";
 }
+
+// ✅ OPTIONAL: Cross-tab logout sync ONLY (SAFE)
+window.addEventListener("storage", function (e) {
+  if (e.key === "userLoggedIn" && e.newValue === null) {
+    // logout triggered in another tab
+    window.location.replace("index.html");
+  }
+});
