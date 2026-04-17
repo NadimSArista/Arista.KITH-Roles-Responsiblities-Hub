@@ -78,18 +78,21 @@
   <div class="footer">
     © 2026 Arista Systems Pvt. Ltd.
   </div>
+<!-- ✅ AUTH CONTROL (STANDARD FOR ALL PAGES) -->
 <script type="module">
-  import { initAuth } from "./auth.js";
+  import { isUserLoggedIn } from "./auth.js";
 
-  initAuth(
-    () => {
-      // ✅ user allowed → do nothing
-    },
-    () => {
-      // ❌ not logged in → redirect to login page
-      window.location.href = "index.html";
+  // 🔐 Check login (no flicker, no cross-tab issues)
+  if (!isUserLoggedIn()) {
+    window.location.replace("index.html");
+  }
+
+  // 🔒 Cross-tab logout sync ONLY (safe)
+  window.addEventListener("storage", function (e) {
+    if (e.key === "userLoggedIn" && e.newValue === null) {
+      window.location.replace("index.html");
     }
-  );
+  });
 </script>
   
 </body>
