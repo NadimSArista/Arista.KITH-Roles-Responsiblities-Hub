@@ -86,13 +86,13 @@
 <script type="module">
   import { login, logout, isUserLoggedIn } from "./auth.js";
 
-  // 🔐 LOGIN BUTTON
+  // 🔐 LOGIN
   window.loginWithGoogle = async () => {
     const success = await login();
     if (success) showApp();
   };
 
-  // 🔓 LOGOUT BUTTON
+  // 🔓 LOGOUT
   window.logout = logout;
 
   function showApp() {
@@ -105,8 +105,12 @@
     document.getElementById("main-content").style.display = "none";
   }
 
-  // 🚀 INIT AUTH (NO FLICKER, NO TAB SYNC ISSUE)
-  initAuth(showApp, showLogin);
+  // ✅ SIMPLE CHECK (THIS FIXES EVERYTHING)
+  if (isUserLoggedIn()) {
+    showApp();
+  } else {
+    showLogin();
+  }
 </script>
 
 </body>
