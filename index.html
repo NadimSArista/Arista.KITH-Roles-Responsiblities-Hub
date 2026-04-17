@@ -8,7 +8,7 @@
 
 <body>
 
-<!-- 🔐 LOGIN SCREEN (HIDDEN BY DEFAULT - IMPORTANT FIX) -->
+<!-- 🔐 LOGIN SCREEN -->
 <div id="login-screen" style="
   display:none;
   height:100vh;
@@ -89,7 +89,6 @@
     getAuth,
     GoogleAuthProvider,
     signInWithPopup,
-    onAuthStateChanged,
     setPersistence,
     browserLocalPersistence,
     signOut
@@ -133,14 +132,15 @@
     }
   };
 
-  // 🔓 LOGOUT (IMPORTANT FIX)
+  // 🔓 LOGOUT
   window.logout = async () => {
     await signOut(auth);
-    location.reload(); // 🔥 ensures clean state across tabs
+    location.reload();
   };
 
-  // 🔥 AUTH STATE (NO FLICKER FIX)
-  onAuthStateChanged(auth, (user) => {
+  // ✅ SIMPLE AUTH CHECK (NO CROSS-TAB ISSUE)
+  async function checkAuth() {
+    const user = auth.currentUser;
 
     if (user) {
       const email = user.email;
@@ -151,13 +151,17 @@
       ) {
         showApp();
       } else {
-        signOut(auth);
+        await signOut(auth);
+        showLogin();
       }
-
     } else {
       showLogin();
     }
+  }
 
+  // ✅ RUN ONLY ON LOAD (NO GLOBAL LISTENER)
+  window.addEventListener("load", () => {
+    setTimeout(checkAuth, 300);
   });
 
   function showApp() {
