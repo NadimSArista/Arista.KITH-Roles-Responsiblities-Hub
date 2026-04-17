@@ -24,6 +24,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
+// ✅ KEEP SESSION
 setPersistence(auth, browserLocalPersistence);
 
 // ✅ DOMAIN CHECK
@@ -46,7 +47,11 @@ export async function login() {
       return false;
     }
 
+    // ✅ FIX: store login state instantly
+    localStorage.setItem("userLoggedIn", "true");
+
     return true;
+
   } catch (error) {
     console.error(error);
     alert("Login failed");
@@ -57,25 +62,15 @@ export async function login() {
 // 🔓 LOGOUT
 export async function logout() {
   await signOut(auth);
-  location.reload();
+
+  // ✅ FIX: clear local session
+  localStorage.removeItem("userLoggedIn");
+
+  // ✅ redirect cleanly
+  window.location.href = "index.html";
 }
 
-// 🔍 AUTH CHECK
-export function checkAuth(onSuccess, onFail) {
-  const user = auth.currentUser;
-
-  if (user && isAllowed(user.email)) {
-    onSuccess();
-  } else {
-    onFail();
-  }
-}
-
-// ⏳ WAIT FOR SESSION RESTORE
-export function initAuth(onSuccess, onFail) {
-  window.addEventListener("load", () => {
-    setTimeout(() => {
-      checkAuth(onSuccess, onFail);
-    }, 300);
-  });
+// ✅ SIMPLE AUTH CHECK (NO FIREBASE DELAY)
+export function isUserLoggedIn() {
+  return localStorage.getItem("userLoggedIn") === "true";
 }
