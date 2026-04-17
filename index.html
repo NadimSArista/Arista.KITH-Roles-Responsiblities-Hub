@@ -82,87 +82,18 @@
 
 </div>
 
-<!-- 🔥 FIREBASE AUTH SCRIPT -->
+<!-- 🔥 REUSABLE AUTH -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-  import {
-    getAuth,
-    GoogleAuthProvider,
-    signInWithPopup,
-    setPersistence,
-    browserLocalPersistence,
-    signOut
-  } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+  import { login, logout, initAuth } from "./auth.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAuK6khpaCk30axVzPp6jqdWfECFgAGLXY",
-    authDomain: "arista-roles-hub.firebaseapp.com",
-    projectId: "arista-roles-hub",
-    storageBucket: "arista-roles-hub.firebasestorage.app",
-    messagingSenderId: "771103191015",
-    appId: "1:771103191015:web:a6a163ad206253891c5742"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
-
-  // ✅ KEEP SESSION
-  setPersistence(auth, browserLocalPersistence);
-
-  // 🔐 LOGIN
+  // 🔐 LOGIN BUTTON
   window.loginWithGoogle = async () => {
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const email = result.user.email;
-
-      if (
-        email.endsWith("@aristasystems.in") ||
-        email.endsWith("@kithnyc.com")
-      ) {
-        showApp();
-      } else {
-        alert("Access Denied");
-        await signOut(auth);
-      }
-
-    } catch (error) {
-      console.error(error);
-      alert("Login failed");
-    }
+    const success = await login();
+    if (success) showApp();
   };
 
-  // 🔓 LOGOUT
-  window.logout = async () => {
-    await signOut(auth);
-    location.reload();
-  };
-
-  // ✅ SIMPLE AUTH CHECK (NO CROSS-TAB ISSUE)
-  async function checkAuth() {
-    const user = auth.currentUser;
-
-    if (user) {
-      const email = user.email;
-
-      if (
-        email.endsWith("@aristasystems.in") ||
-        email.endsWith("@kithnyc.com")
-      ) {
-        showApp();
-      } else {
-        await signOut(auth);
-        showLogin();
-      }
-    } else {
-      showLogin();
-    }
-  }
-
-  // ✅ RUN ONLY ON LOAD (NO GLOBAL LISTENER)
-  window.addEventListener("load", () => {
-    setTimeout(checkAuth, 300);
-  });
+  // 🔓 LOGOUT BUTTON
+  window.logout = logout;
 
   function showApp() {
     document.getElementById("login-screen").style.display = "none";
@@ -173,6 +104,9 @@
     document.getElementById("login-screen").style.display = "flex";
     document.getElementById("main-content").style.display = "none";
   }
+
+  // 🚀 INIT AUTH (NO FLICKER, NO TAB SYNC ISSUE)
+  initAuth(showApp, showLogin);
 </script>
 
 </body>
