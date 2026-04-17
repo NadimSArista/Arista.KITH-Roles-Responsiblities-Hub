@@ -82,7 +82,15 @@
 <!-- 🔥 FIREBASE AUTH SCRIPT -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+  import {
+    getAuth,
+    GoogleAuthProvider,
+    signInWithPopup,
+    onAuthStateChanged,
+    setPersistence,
+    browserLocalPersistence,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAuK6khpaCk30axVzPp6jqdWfECFgAGLXY",
@@ -97,6 +105,9 @@
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
 
+  // ✅ KEEP USER LOGGED IN
+  setPersistence(auth, browserLocalPersistence);
+
   // 🔐 LOGIN FUNCTION
   window.loginWithGoogle = async () => {
     try {
@@ -104,13 +115,11 @@
       const user = result.user;
       const email = user.email;
 
-      // ✅ Restrict access
       if (
         email.endsWith("@aristasystems.in") ||
         email.endsWith("@kithnyc.com")
       ) {
-        document.getElementById("login-screen").style.display = "none";
-        document.getElementById("main-content").style.display = "block";
+        showApp();
       } else {
         alert("Access Denied: Unauthorized email");
         await signOut(auth);
@@ -121,6 +130,34 @@
       alert("Login failed");
     }
   };
+
+  // 🔥 AUTO LOGIN CHECK (THIS FIXES YOUR ISSUE)
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      const email = user.email;
+
+      if (
+        email.endsWith("@aristasystems.in") ||
+        email.endsWith("@kithnyc.com")
+      ) {
+        showApp();
+      } else {
+        signOut(auth);
+      }
+    } else {
+      showLogin();
+    }
+  });
+
+  function showApp() {
+    document.getElementById("login-screen").style.display = "none";
+    document.getElementById("main-content").style.display = "block";
+  }
+
+  function showLogin() {
+    document.getElementById("login-screen").style.display = "flex";
+    document.getElementById("main-content").style.display = "none";
+  }
 </script>
 
 </body>
