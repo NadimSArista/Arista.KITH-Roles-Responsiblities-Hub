@@ -846,3 +846,20 @@ body.operations-page .person-block {
   background: #38bdf8;
   color: #0f172a;
 }
+/* 🔥 FORCE LOGOUT BUTTON STYLE */
+.nav-links .logout-btn {
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.6);
+  color: #38bdf8;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: 12px;
+  transition: all 0.2s ease;
+}
+
+.nav-links .logout-btn:hover {
+  background: #38bdf8;
+  color: #0f172a;
+}
