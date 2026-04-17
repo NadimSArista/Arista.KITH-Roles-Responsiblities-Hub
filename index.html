@@ -8,10 +8,10 @@
 
 <body>
 
-<!-- 🔐 LOGIN SCREEN -->
+<!-- 🔐 LOGIN SCREEN (HIDDEN BY DEFAULT - IMPORTANT FIX) -->
 <div id="login-screen" style="
+  display:none;
   height:100vh;
-  display:flex;
   align-items:center;
   justify-content:center;
   background:#0f172a;
@@ -51,7 +51,7 @@
       <a href="org-chart.png" target="_blank">Org Chart ↗</a>
       <a href="directory.html">Directory</a>
 
-      <!-- ✅ LOGOUT BUTTON -->
+      <!-- ✅ LOGOUT -->
       <button onclick="logout()" class="logout-btn">Logout</button>
     </div>
 
@@ -108,15 +108,14 @@
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
 
-  // ✅ KEEP USER LOGGED IN
+  // ✅ KEEP SESSION
   setPersistence(auth, browserLocalPersistence);
 
-  // 🔐 LOGIN FUNCTION
+  // 🔐 LOGIN
   window.loginWithGoogle = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      const email = user.email;
+      const email = result.user.email;
 
       if (
         email.endsWith("@aristasystems.in") ||
@@ -124,7 +123,7 @@
       ) {
         showApp();
       } else {
-        alert("Access Denied: Unauthorized email");
+        alert("Access Denied");
         await signOut(auth);
       }
 
@@ -134,18 +133,15 @@
     }
   };
 
-  // 🔓 LOGOUT FUNCTION (NEW)
+  // 🔓 LOGOUT (IMPORTANT FIX)
   window.logout = async () => {
-    try {
-      await signOut(auth);
-      showLogin();
-    } catch (error) {
-      console.error(error);
-    }
+    await signOut(auth);
+    location.reload(); // 🔥 ensures clean state across tabs
   };
 
-  // 🔥 AUTO LOGIN CHECK
+  // 🔥 AUTH STATE (NO FLICKER FIX)
   onAuthStateChanged(auth, (user) => {
+
     if (user) {
       const email = user.email;
 
@@ -157,9 +153,11 @@
       } else {
         signOut(auth);
       }
+
     } else {
       showLogin();
     }
+
   });
 
   function showApp() {
