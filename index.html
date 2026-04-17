@@ -50,6 +50,9 @@
       <a href="departments.html">Departments</a>
       <a href="org-chart.png" target="_blank">Org Chart ↗</a>
       <a href="directory.html">Directory</a>
+
+      <!-- ✅ LOGOUT BUTTON -->
+      <button onclick="logout()" class="logout-btn">Logout</button>
     </div>
 
   </div>
@@ -131,7 +134,17 @@
     }
   };
 
-  // 🔥 AUTO LOGIN CHECK (THIS FIXES YOUR ISSUE)
+  // 🔓 LOGOUT FUNCTION (NEW)
+  window.logout = async () => {
+    try {
+      await signOut(auth);
+      showLogin();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // 🔥 AUTO LOGIN CHECK
   onAuthStateChanged(auth, (user) => {
     if (user) {
       const email = user.email;
