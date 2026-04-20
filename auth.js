@@ -25,6 +25,9 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
+// ✅ IMPORTANT (fix for multi-domain issues)
+auth.useDeviceLanguage();
+
 // ✅ KEEP SESSION
 setPersistence(auth, browserLocalPersistence);
 
@@ -36,7 +39,7 @@ function isAllowed(email) {
   );
 }
 
-// 🔐 LOGIN (REDIRECT VERSION)
+// 🔐 LOGIN (REDIRECT)
 export async function login() {
   try {
     await signInWithRedirect(auth, provider);
@@ -46,12 +49,13 @@ export async function login() {
   }
 }
 
-// ✅ HANDLE REDIRECT RESULT (VERY IMPORTANT)
+// ✅ HANDLE REDIRECT RESULT (CRITICAL FIX)
 export async function handleRedirect() {
   try {
     const result = await getRedirectResult(auth);
 
-    if (result && result.user) {
+    // 👇 This handles BOTH fresh login AND existing session
+    if (result?.user) {
       const email = result.user.email;
 
       if (!isAllowed(email)) {
@@ -62,14 +66,21 @@ export async function handleRedirect() {
 
       localStorage.setItem("userLoggedIn", "true");
 
-      // redirect to main page
-      window.location.replace("home.html"); // or departments.html if that's your entry
-
       return true;
     }
+
+    // 👇 If already logged in (refresh case)
+    if (auth.currentUser) {
+      localStorage.setItem("userLoggedIn", "true");
+      return true;
+    }
+
+    return false;
+
   } catch (error) {
     console.error("REDIRECT ERROR:", error);
     alert(error.message);
+    return false;
   }
 }
 
@@ -80,7 +91,7 @@ export async function logout() {
     localStorage.removeItem("userLoggedIn");
     window.location.replace("index.html");
   } catch (error) {
-    console.error(error);
+    console.error("LOGOUT ERROR:", error);
   }
 }
 
