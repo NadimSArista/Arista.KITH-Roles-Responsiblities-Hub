@@ -86,12 +86,10 @@
 <script type="module">
   import { login, logout, isUserLoggedIn, handleRedirect } from "./auth.js";
 
-  // 🔐 LOGIN
   window.loginWithGoogle = async () => {
-    await login(); // redirect happens here
+    await login();
   };
 
-  // 🔓 LOGOUT
   window.logout = logout;
 
   function showApp() {
@@ -104,19 +102,20 @@
     document.getElementById("main-content").style.display = "none";
   }
 
-  // 🔥 MOST IMPORTANT PART (ADD THIS)
   async function init() {
-    await handleRedirect(); // 👈 captures Google login result
+    const loggedIn = await handleRedirect();
 
-    if (isUserLoggedIn()) {
+    if (loggedIn || isUserLoggedIn()) {
       showApp();
     } else {
       showLogin();
     }
+
+    document.body.style.visibility = "visible";
   }
 
   init();
 </script>
-
+  
 </body>
 </html>
