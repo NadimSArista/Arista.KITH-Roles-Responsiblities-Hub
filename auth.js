@@ -29,8 +29,10 @@ const provider = new GoogleAuthProvider();
 // 🌍 Language
 auth.useDeviceLanguage();
 
-// ✅ PERSISTENCE (IMPORTANT FIX)
-await setPersistence(auth, browserLocalPersistence);
+// ✅ FIX: Wrap persistence (NO top-level await)
+setPersistence(auth, browserLocalPersistence).catch((error) => {
+  console.error("Persistence error:", error);
+});
 
 // ✅ DOMAIN CHECK
 function isAllowed(email) {
@@ -43,18 +45,18 @@ function isAllowed(email) {
 // 🔐 LOGIN
 export async function login() {
   try {
+    console.log("LOGIN TRIGGERED"); // 🔍 debug
     await signInWithRedirect(auth, provider);
   } catch (error) {
     console.error("LOGIN ERROR:", error);
   }
 }
 
-// 🔥 HANDLE REDIRECT + SESSION (FINAL STABLE VERSION)
+// 🔥 HANDLE REDIRECT
 export async function handleRedirect() {
   try {
     const result = await getRedirectResult(auth);
 
-    // ✅ Case 1: Redirect login
     if (result?.user) {
       const email = result.user.email;
 
@@ -67,14 +69,9 @@ export async function handleRedirect() {
       return true;
     }
 
-    // ✅ Case 2: Wait for auth state (CRITICAL FIX)
+    // ✅ Wait for auth state properly
     return new Promise((resolve) => {
-      let resolved = false;
-
       const unsubscribe = onAuthStateChanged(auth, (user) => {
-        if (resolved) return;
-
-        resolved = true;
         unsubscribe();
 
         if (user) {
@@ -84,15 +81,6 @@ export async function handleRedirect() {
           resolve(false);
         }
       });
-
-      // ⛑️ SAFETY TIMEOUT (prevents infinite waiting)
-      setTimeout(() => {
-        if (!resolved) {
-          resolved = true;
-          unsubscribe();
-          resolve(false);
-        }
-      }, 3000);
     });
 
   } catch (error) {
@@ -112,12 +100,12 @@ export async function logout() {
   }
 }
 
-// ✅ SIMPLE AUTH CHECK
+// ✅ CHECK
 export function isUserLoggedIn() {
   return localStorage.getItem("userLoggedIn") === "true";
 }
 
-// 🔄 CROSS TAB LOGOUT SYNC
+// 🔄 CROSS TAB SYNC
 window.addEventListener("storage", function (e) {
   if (e.key === "userLoggedIn" && e.newValue === null) {
     window.location.replace("index.html");
