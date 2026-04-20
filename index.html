@@ -3,34 +3,70 @@
 <head>
   <meta charset="UTF-8">
   <title>Roles & Responsibilities Hub</title>
+
   <link rel="stylesheet" href="styles.css">
+
+  <!-- 🔥 Premium Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- 🔥 Premium Styling -->
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at top, #1e293b, #020617);
+    }
+
+    /* LOGIN SCREEN */
+    #login-screen {
+      display: none;
+      height: 100vh;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: white;
+      text-align: center;
+    }
+
+    #login-screen h1 {
+      font-size: 48px;
+      font-weight: 600;
+      line-height: 1.2;
+      background: linear-gradient(90deg, #ffffff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 30px;
+    }
+
+    /* PREMIUM BUTTON */
+    .google-btn {
+      padding: 14px 28px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .google-btn:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 15px 40px rgba(99, 102, 241, 0.6);
+    }
+  </style>
 </head>
 
 <body>
 
 <!-- 🔐 LOGIN SCREEN -->
-<div id="login-screen" style="
-  display:none;
-  height:100vh;
-  align-items:center;
-  justify-content:center;
-  background:#0f172a;
-  flex-direction:column;
-  color:white;
-">
+<div id="login-screen">
 
-  <h1 style="margin-bottom:20px;">Clarity turns potential into performance</h1>
+  <h1>Clarity turns potential into performance</h1>
 
-  <button onclick="loginWithGoogle()" style="
-    padding:14px 24px;
-    background:#ffffff;
-    color:#000;
-    border:none;
-    border-radius:8px;
-    font-size:16px;
-    cursor:pointer;
-  ">
-    Sign in with Google
+  <button onclick="loginWithGoogle()" class="google-btn">
+    Continue with Google →
   </button>
 
 </div>
@@ -51,7 +87,7 @@
       <a href="org-chart.png" target="_blank">Org Chart ↗</a>
       <a href="directory.html">Directory</a>
 
-      <!-- ✅ LOGOUT -->
+      <!-- LOGOUT -->
       <button onclick="logout()" class="logout-btn">Logout</button>
     </div>
 
@@ -82,17 +118,15 @@
 
 </div>
 
-<!-- 🔥 REUSABLE AUTH -->
+<!-- 🔥 AUTH -->
 <script type="module">
   import { login, logout, isUserLoggedIn } from "./auth.js";
 
-  // 🔐 LOGIN
   window.loginWithGoogle = async () => {
     const success = await login();
     if (success) showApp();
   };
 
-  // 🔓 LOGOUT
   window.logout = logout;
 
   function showApp() {
@@ -105,7 +139,6 @@
     document.getElementById("main-content").style.display = "none";
   }
 
-  // ✅ SIMPLE CHECK (THIS FIXES EVERYTHING)
   if (isUserLoggedIn()) {
     showApp();
   } else {
