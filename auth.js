@@ -31,10 +31,10 @@ setPersistence(auth, browserLocalPersistence);
 function isAllowed(email) {
   return (
     email.endsWith("@aristasystems.in") ||
-    email.endsWith("@kithnyc.com")
+    email.endsWith("@kithnyc.com") ||
+    email.endsWith("@kith.com")
   );
 }
-
 // 🔐 LOGIN
 export async function login() {
   try {
