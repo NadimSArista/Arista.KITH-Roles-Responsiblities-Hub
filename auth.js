@@ -3,7 +3,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/fireba
 import {
   getAuth,
   GoogleAuthProvider,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   setPersistence,
   browserLocalPersistence,
   signOut
@@ -35,41 +36,49 @@ function isAllowed(email) {
   );
 }
 
-// 🔐 LOGIN
+// 🔐 LOGIN (REDIRECT VERSION)
 export async function login() {
   try {
-    const result = await signInWithPopup(auth, provider);
-    const email = result.user.email;
-
-    if (!isAllowed(email)) {
-      alert("Access Denied");
-      await signOut(auth);
-      return false;
-    }
-
-    // ✅ Store session locally (fast + stable)
-    localStorage.setItem("userLoggedIn", "true");
-
-    return true;
-
+    await signInWithRedirect(auth, provider);
   } catch (error) {
-    console.error(error);
-    alert("Login failed");
-    return false;
+    console.error("LOGIN ERROR:", error);
+    alert(error.message);
   }
 }
 
-// 🔓 LOGOUT (FIXED - NO CROSS TAB NAV ISSUE)
+// ✅ HANDLE REDIRECT RESULT (VERY IMPORTANT)
+export async function handleRedirect() {
+  try {
+    const result = await getRedirectResult(auth);
+
+    if (result && result.user) {
+      const email = result.user.email;
+
+      if (!isAllowed(email)) {
+        alert("Access Denied");
+        await signOut(auth);
+        return false;
+      }
+
+      localStorage.setItem("userLoggedIn", "true");
+
+      // redirect to main page
+      window.location.replace("home.html"); // or departments.html if that's your entry
+
+      return true;
+    }
+  } catch (error) {
+    console.error("REDIRECT ERROR:", error);
+    alert(error.message);
+  }
+}
+
+// 🔓 LOGOUT
 export async function logout() {
   try {
     await signOut(auth);
-
-    // ✅ Clear session
     localStorage.removeItem("userLoggedIn");
-
-    // ✅ Redirect ONLY this tab safely
     window.location.replace("index.html");
-
   } catch (error) {
     console.error(error);
   }
@@ -80,10 +89,9 @@ export function isUserLoggedIn() {
   return localStorage.getItem("userLoggedIn") === "true";
 }
 
-// ✅ OPTIONAL: Cross-tab logout sync ONLY (SAFE)
+// ✅ CROSS TAB LOGOUT SYNC
 window.addEventListener("storage", function (e) {
   if (e.key === "userLoggedIn" && e.newValue === null) {
-    // logout triggered in another tab
     window.location.replace("index.html");
   }
 });
