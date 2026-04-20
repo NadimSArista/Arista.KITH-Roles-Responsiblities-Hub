@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <title>Roles & Responsibilities Hub</title>
   <link rel="stylesheet" href="styles.css">
+
+  <!-- 🔥 Prevent flicker before auth check -->
+  <style>
+    body { visibility: hidden; }
+  </style>
 </head>
 
 <body>
@@ -82,14 +87,16 @@
 
 </div>
 
-<!-- 🔥 REUSABLE AUTH -->
+<!-- 🔥 AUTH SCRIPT -->
 <script type="module">
   import { login, logout, isUserLoggedIn, handleRedirect } from "./auth.js";
 
+  // 🔐 LOGIN
   window.loginWithGoogle = async () => {
-    await login();
+    await login(); // redirect handled by Firebase
   };
 
+  // 🔓 LOGOUT
   window.logout = logout;
 
   function showApp() {
@@ -102,20 +109,28 @@
     document.getElementById("main-content").style.display = "none";
   }
 
+  // 🚀 FINAL INIT (NO LOOP, NO FLICKER)
   async function init() {
-    const loggedIn = await handleRedirect();
+    try {
+      const loggedIn = await handleRedirect();
 
-    if (loggedIn || isUserLoggedIn()) {
-      showApp();
-    } else {
+      if (loggedIn || isUserLoggedIn()) {
+        showApp();
+      } else {
+        showLogin();
+      }
+
+    } catch (e) {
+      console.error("INIT ERROR:", e);
       showLogin();
+    } finally {
+      // ✅ Always show UI after decision
+      document.body.style.visibility = "visible";
     }
-
-    document.body.style.visibility = "visible";
   }
 
   init();
 </script>
-  
+
 </body>
 </html>
