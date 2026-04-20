@@ -6,54 +6,98 @@
 
   <link rel="stylesheet" href="styles.css">
 
-  <!-- 🔥 Premium Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Premium Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
-  <!-- 🔥 Premium Styling -->
   <style>
     body {
       margin: 0;
       font-family: 'Inter', sans-serif;
-      background: radial-gradient(circle at top, #1e293b, #020617);
+      background: linear-gradient(135deg, #020617, #0f172a, #1e293b);
+      background-size: 300% 300%;
+      animation: gradientShift 12s ease infinite;
     }
 
-    /* LOGIN SCREEN */
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* LOGIN WRAPPER */
     #login-screen {
       display: none;
       height: 100vh;
       align-items: center;
       justify-content: center;
-      flex-direction: column;
-      color: white;
-      text-align: center;
     }
 
-    #login-screen h1 {
-      font-size: 48px;
+    /* GLASS CARD */
+    .login-card {
+      backdrop-filter: blur(20px);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 50px 40px;
+      text-align: center;
+      color: white;
+      width: 420px;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+      animation: fadeUp 0.8s ease;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* TITLE */
+    .login-card h1 {
+      font-size: 34px;
       font-weight: 600;
-      line-height: 1.2;
-      background: linear-gradient(90deg, #ffffff, #94a3b8);
+      margin-bottom: 10px;
+      background: linear-gradient(90deg, #ffffff, #cbd5f5);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+    }
+
+    /* SUBTEXT */
+    .login-card p {
+      color: #94a3b8;
+      font-size: 14px;
       margin-bottom: 30px;
     }
 
-    /* PREMIUM BUTTON */
+    /* BUTTON */
     .google-btn {
-      padding: 14px 28px;
-      font-size: 16px;
-      border-radius: 10px;
+      width: 100%;
+      padding: 14px;
+      font-size: 15px;
+      border-radius: 12px;
       border: none;
       cursor: pointer;
       background: linear-gradient(135deg, #6366f1, #8b5cf6);
       color: white;
-      box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+      box-shadow: 0 10px 30px rgba(99, 102, 241, 0.5);
       transition: all 0.3s ease;
     }
 
     .google-btn:hover {
-      transform: translateY(-2px) scale(1.03);
-      box-shadow: 0 15px 40px rgba(99, 102, 241, 0.6);
+      transform: translateY(-2px);
+      box-shadow: 0 15px 40px rgba(99, 102, 241, 0.7);
+    }
+
+    /* FOOTER TEXT */
+    .footer-text {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #64748b;
     }
   </style>
 </head>
@@ -63,11 +107,21 @@
 <!-- 🔐 LOGIN SCREEN -->
 <div id="login-screen">
 
-  <h1>Clarity turns potential into performance</h1>
+  <div class="login-card">
+    
+    <h1>Roles Hub</h1>
 
-  <button onclick="loginWithGoogle()" class="google-btn">
-    Continue with Google →
-  </button>
+    <p>Clarity turns potential into performance</p>
+
+    <button onclick="loginWithGoogle()" class="google-btn">
+      Continue with Google →
+    </button>
+
+    <div class="footer-text">
+      Arista × KITH · 2026
+    </div>
+
+  </div>
 
 </div>
 
@@ -87,7 +141,6 @@
       <a href="org-chart.png" target="_blank">Org Chart ↗</a>
       <a href="directory.html">Directory</a>
 
-      <!-- LOGOUT -->
       <button onclick="logout()" class="logout-btn">Logout</button>
     </div>
 
