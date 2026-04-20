@@ -84,12 +84,11 @@
 
 <!-- 🔥 REUSABLE AUTH -->
 <script type="module">
-  import { login, logout, isUserLoggedIn } from "./auth.js";
+  import { login, logout, isUserLoggedIn, handleRedirect } from "./auth.js";
 
   // 🔐 LOGIN
   window.loginWithGoogle = async () => {
-    const success = await login();
-    if (success) showApp();
+    await login(); // redirect happens here
   };
 
   // 🔓 LOGOUT
@@ -105,12 +104,18 @@
     document.getElementById("main-content").style.display = "none";
   }
 
-  // ✅ SIMPLE CHECK (THIS FIXES EVERYTHING)
-  if (isUserLoggedIn()) {
-    showApp();
-  } else {
-    showLogin();
+  // 🔥 MOST IMPORTANT PART (ADD THIS)
+  async function init() {
+    await handleRedirect(); // 👈 captures Google login result
+
+    if (isUserLoggedIn()) {
+      showApp();
+    } else {
+      showLogin();
+    }
   }
+
+  init();
 </script>
 
 </body>
