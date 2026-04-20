@@ -3,12 +3,10 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/fireba
 import {
   getAuth,
   GoogleAuthProvider,
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithPopup,
   setPersistence,
   browserLocalPersistence,
-  signOut,
-  onAuthStateChanged
+  signOut
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
 // 🔐 CONFIG
@@ -26,13 +24,8 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// 🌍 Language
-auth.useDeviceLanguage();
-
-// ✅ FIX: Wrap persistence (NO top-level await)
-setPersistence(auth, browserLocalPersistence).catch((error) => {
-  console.error("Persistence error:", error);
-});
+// ✅ KEEP SESSION
+setPersistence(auth, browserLocalPersistence);
 
 // ✅ DOMAIN CHECK
 function isAllowed(email) {
@@ -45,69 +38,52 @@ function isAllowed(email) {
 // 🔐 LOGIN
 export async function login() {
   try {
-    console.log("LOGIN TRIGGERED"); // 🔍 debug
-    await signInWithRedirect(auth, provider);
-  } catch (error) {
-    console.error("LOGIN ERROR:", error);
-  }
-}
+    const result = await signInWithPopup(auth, provider);
+    const email = result.user.email;
 
-// 🔥 HANDLE REDIRECT
-export async function handleRedirect() {
-  try {
-    const result = await getRedirectResult(auth);
-
-    if (result?.user) {
-      const email = result.user.email;
-
-      if (!isAllowed(email)) {
-        await signOut(auth);
-        return false;
-      }
-
-      localStorage.setItem("userLoggedIn", "true");
-      return true;
+    if (!isAllowed(email)) {
+      alert("Access Denied");
+      await signOut(auth);
+      return false;
     }
 
-    // ✅ Wait for auth state properly
-    return new Promise((resolve) => {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        unsubscribe();
+    // ✅ Store session locally (fast + stable)
+    localStorage.setItem("userLoggedIn", "true");
 
-        if (user) {
-          localStorage.setItem("userLoggedIn", "true");
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      });
-    });
+    return true;
 
   } catch (error) {
-    console.error("REDIRECT ERROR:", error);
+    console.error(error);
+    alert("Login failed");
     return false;
   }
 }
 
-// 🔓 LOGOUT
+// 🔓 LOGOUT (FIXED - NO CROSS TAB NAV ISSUE)
 export async function logout() {
   try {
     await signOut(auth);
+
+    // ✅ Clear session
     localStorage.removeItem("userLoggedIn");
+
+    // ✅ Redirect ONLY this tab safely
     window.location.replace("index.html");
+
   } catch (error) {
-    console.error("LOGOUT ERROR:", error);
+    console.error(error);
   }
 }
 
-// ✅ CHECK
+// ✅ SIMPLE AUTH CHECK
 export function isUserLoggedIn() {
   return localStorage.getItem("userLoggedIn") === "true";
 }
 
-// 🔄 CROSS TAB SYNC
+// ✅ OPTIONAL: Cross-tab logout sync ONLY (SAFE)
 window.addEventListener("storage", function (e) {
   if (e.key === "userLoggedIn" && e.newValue === null) {
+    // logout triggered in another tab
     window.location.replace("index.html");
   }
 });
