@@ -26,11 +26,11 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// ✅ Better compatibility across domains
+// 🌍 Optional: use user's language
 auth.useDeviceLanguage();
 
-// ✅ KEEP SESSION (await ensures consistency)
-await setPersistence(auth, browserLocalPersistence);
+// ✅ KEEP SESSION
+setPersistence(auth, browserLocalPersistence);
 
 // ✅ DOMAIN CHECK
 function isAllowed(email) {
@@ -40,7 +40,7 @@ function isAllowed(email) {
   );
 }
 
-// 🔐 LOGIN (REDIRECT FLOW)
+// 🔐 LOGIN (REDIRECT)
 export async function login() {
   try {
     await signInWithRedirect(auth, provider);
@@ -50,7 +50,7 @@ export async function login() {
   }
 }
 
-// ✅ HANDLE REDIRECT RESULT (MAIN FIX)
+// 🔥 HANDLE REDIRECT + SESSION (FINAL FIX)
 export async function handleRedirect() {
   try {
     const result = await getRedirectResult(auth);
@@ -69,13 +69,19 @@ export async function handleRedirect() {
       return true;
     }
 
-    // ✅ Case 2: Already logged in (page refresh / revisit)
-    if (auth.currentUser) {
-      localStorage.setItem("userLoggedIn", "true");
-      return true;
-    }
+    // ✅ Case 2: Wait for Firebase auth state (CRITICAL)
+    return new Promise((resolve) => {
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        unsubscribe(); // stop listening once triggered
 
-    return false;
+        if (user) {
+          localStorage.setItem("userLoggedIn", "true");
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      });
+    });
 
   } catch (error) {
     console.error("REDIRECT ERROR:", error);
@@ -89,10 +95,7 @@ export async function logout() {
   try {
     await signOut(auth);
     localStorage.removeItem("userLoggedIn");
-
-    // safer redirect (avoids history issues)
     window.location.replace("index.html");
-
   } catch (error) {
     console.error("LOGOUT ERROR:", error);
   }
@@ -103,14 +106,7 @@ export function isUserLoggedIn() {
   return localStorage.getItem("userLoggedIn") === "true";
 }
 
-// ✅ EXTRA STABILITY (handles edge cases silently)
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    localStorage.setItem("userLoggedIn", "true");
-  }
-});
-
-// ✅ CROSS TAB LOGOUT SYNC
+// 🔄 CROSS-TAB LOGOUT SYNC
 window.addEventListener("storage", function (e) {
   if (e.key === "userLoggedIn" && e.newValue === null) {
     window.location.replace("index.html");
