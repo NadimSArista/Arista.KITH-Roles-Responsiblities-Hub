@@ -26,11 +26,11 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// 🌍 Optional: use user's language
+// 🌍 Language
 auth.useDeviceLanguage();
 
-// ✅ KEEP SESSION
-setPersistence(auth, browserLocalPersistence);
+// ✅ PERSISTENCE (IMPORTANT FIX)
+await setPersistence(auth, browserLocalPersistence);
 
 // ✅ DOMAIN CHECK
 function isAllowed(email) {
@@ -40,27 +40,25 @@ function isAllowed(email) {
   );
 }
 
-// 🔐 LOGIN (REDIRECT)
+// 🔐 LOGIN
 export async function login() {
   try {
     await signInWithRedirect(auth, provider);
   } catch (error) {
     console.error("LOGIN ERROR:", error);
-    alert(error.message);
   }
 }
 
-// 🔥 HANDLE REDIRECT + SESSION (FINAL FIX)
+// 🔥 HANDLE REDIRECT + SESSION (FINAL STABLE VERSION)
 export async function handleRedirect() {
   try {
     const result = await getRedirectResult(auth);
 
-    // ✅ Case 1: Fresh login after redirect
+    // ✅ Case 1: Redirect login
     if (result?.user) {
       const email = result.user.email;
 
       if (!isAllowed(email)) {
-        alert("Access Denied");
         await signOut(auth);
         return false;
       }
@@ -69,10 +67,15 @@ export async function handleRedirect() {
       return true;
     }
 
-    // ✅ Case 2: Wait for Firebase auth state (CRITICAL)
+    // ✅ Case 2: Wait for auth state (CRITICAL FIX)
     return new Promise((resolve) => {
+      let resolved = false;
+
       const unsubscribe = onAuthStateChanged(auth, (user) => {
-        unsubscribe(); // stop listening once triggered
+        if (resolved) return;
+
+        resolved = true;
+        unsubscribe();
 
         if (user) {
           localStorage.setItem("userLoggedIn", "true");
@@ -81,11 +84,19 @@ export async function handleRedirect() {
           resolve(false);
         }
       });
+
+      // ⛑️ SAFETY TIMEOUT (prevents infinite waiting)
+      setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          unsubscribe();
+          resolve(false);
+        }
+      }, 3000);
     });
 
   } catch (error) {
     console.error("REDIRECT ERROR:", error);
-    alert(error.message);
     return false;
   }
 }
@@ -106,7 +117,7 @@ export function isUserLoggedIn() {
   return localStorage.getItem("userLoggedIn") === "true";
 }
 
-// 🔄 CROSS-TAB LOGOUT SYNC
+// 🔄 CROSS TAB LOGOUT SYNC
 window.addEventListener("storage", function (e) {
   if (e.key === "userLoggedIn" && e.newValue === null) {
     window.location.replace("index.html");
